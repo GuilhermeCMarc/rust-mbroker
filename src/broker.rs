@@ -1,3 +1,7 @@
+use std::fs::create_dir;
+use std::fs::remove_dir_all;
+use std::process;
+
 // This module creates a thread for each session and handles the communication
 use crate::named_pipes;
 use crate::pc_queue;
@@ -7,6 +11,16 @@ fn print_usage() {
 }
 
 pub fn run(args: Vec<String>) {
+    ctrlc::set_handler(move || {
+        println!("Broker stopped");
+        remove_dir_all("./tmp").expect("Error removing /tmp directory");
+        process::exit(0);
+    })
+    .unwrap();
+
+    // Creates the tmp dir (where the named pipes will be created)
+    create_dir("./tmp").expect("Error creating /tmp directory");
+
     if args.len() < 4 {
         print_usage();
         return;
@@ -25,9 +39,15 @@ pub fn run(args: Vec<String>) {
     //     std::thread::spawn(|| session(queue));
     // }
 
+    println!("Broker started");
     loop {
-        let content = named_pipes::read_from_pipe(name.clone()).unwrap();
-        queue.enqueue(content).unwrap();
-        queue.dequeue().unwrap();
+        let content: Vec<u8>;
+        match named_pipes::read_from_pipe(name.clone()) {
+            Ok(c) => {
+                content = c;
+                queue.enqueue(content).unwrap();
+            }
+            Err(_) => continue,
+        }
     }
 }

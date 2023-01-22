@@ -1,10 +1,12 @@
 use nix::sys::stat;
 use nix::unistd;
-use tempfile::tempdir;
+
+use std::fs;
+use std::path::PathBuf;
 
 pub fn create_named_pipe(name: String) -> Result<(), String> {
-    let tmp_dir = tempdir().unwrap();
-    let fifo_path = tmp_dir.path().join(name);
+    let tmp_dir = PathBuf::from("./tmp");
+    let fifo_path = tmp_dir.join(name);
 
     match unistd::mkfifo(&fifo_path, stat::Mode::S_IRWXU) {
         Ok(_) => return Ok(()),
@@ -13,8 +15,8 @@ pub fn create_named_pipe(name: String) -> Result<(), String> {
 }
 
 pub fn read_from_pipe(name: String) -> Result<Vec<u8>, String> {
-    let tmp_dir = tempdir().unwrap();
-    let fifo_path = tmp_dir.path().join(name);
+    let tmp_dir = PathBuf::from("/tmp");
+    let fifo_path = tmp_dir.join(name);
 
     match std::fs::read(fifo_path) {
         Ok(content) => return Ok(content),
@@ -23,8 +25,8 @@ pub fn read_from_pipe(name: String) -> Result<Vec<u8>, String> {
 }
 
 pub fn write_in_pipe(name: String, content: Vec<u8>) -> Result<(), String> {
-    let tmp_dir = tempdir().unwrap();
-    let fifo_path = tmp_dir.path().join(name);
+    let tmp_dir = PathBuf::from("/tmp");
+    let fifo_path = tmp_dir.join(name);
 
     match std::fs::write(fifo_path, content) {
         Ok(_) => return Ok(()),

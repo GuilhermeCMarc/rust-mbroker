@@ -1,3 +1,5 @@
+use crate::named_pipes::write_in_pipe;
+
 #[derive(Debug)]
 pub enum ProtocolCode {
     RegisterPublisher = 1,
@@ -113,4 +115,8 @@ impl IsProtocol for MessageProtocol {
 
         return bytes;
     }
+}
+
+fn send_protocol(protocol: impl IsProtocol, pipe_name: String) -> Result<(), String> {
+    return write_in_pipe(pipe_name, protocol.to_bytes());
 }
