@@ -37,10 +37,26 @@ pub trait IsProtocol {
     fn to_bytes(self) -> Vec<u8>;
 }
 
-struct RequestProtocol {
+pub struct RequestProtocol {
     code: ProtocolCode,
     client_named_pipe: String,
     box_name: String,
+}
+
+pub fn register_publisher(client_named_pipe: String, box_name: String) -> RequestProtocol {
+    RequestProtocol {
+        code: ProtocolCode::RegisterPublisher,
+        client_named_pipe,
+        box_name,
+    }
+}
+
+pub fn register_subscriber(client_named_pipe: String, box_name: String) -> RequestProtocol {
+    RequestProtocol {
+        code: ProtocolCode::RegisterSubscriber,
+        client_named_pipe,
+        box_name,
+    }
 }
 
 impl IsProtocol for RequestProtocol {
@@ -66,7 +82,7 @@ impl IsProtocol for RequestProtocol {
     }
 }
 
-struct ResponseProtocol {
+pub struct ResponseProtocol {
     code: ProtocolCode,
     return_code: i32,
     error_msg: String,
@@ -95,9 +111,16 @@ impl IsProtocol for ResponseProtocol {
     }
 }
 
-struct MessageProtocol {
+pub struct MessageProtocol {
     code: ProtocolCode,
     message: String,
+}
+
+pub fn publisher_message(message: String) -> MessageProtocol {
+    return MessageProtocol {
+        code: ProtocolCode::PublisherMessage,
+        message,
+    };
 }
 
 impl IsProtocol for MessageProtocol {
@@ -117,6 +140,6 @@ impl IsProtocol for MessageProtocol {
     }
 }
 
-fn send_protocol(protocol: impl IsProtocol, pipe_name: String) -> Result<(), String> {
+pub fn send_protocol(protocol: impl IsProtocol, pipe_name: String) -> Result<(), String> {
     return write_in_pipe(pipe_name, protocol.to_bytes());
 }
