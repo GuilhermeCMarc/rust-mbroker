@@ -18,9 +18,6 @@ pub fn run(args: Vec<String>) {
     })
     .unwrap();
 
-    // Creates the tmp dir (where the named pipes will be created)
-    create_dir("./tmp").expect("Error creating /tmp directory");
-
     if args.len() < 4 {
         print_usage();
         return;
@@ -31,6 +28,9 @@ pub fn run(args: Vec<String>) {
     let max_sessions = args[3].parse::<usize>().expect("Invalid max sessions");
 
     let mut queue = pc_queue::ProducerConsumerQueue::new(max_sessions);
+
+    // Creates the tmp dir (where the named pipes will be created)
+    create_dir("./tmp").expect("Error creating /tmp directory");
 
     named_pipes::create_named_pipe(name.clone()).unwrap();
 
@@ -44,6 +44,7 @@ pub fn run(args: Vec<String>) {
         let content: Vec<u8>;
         match named_pipes::read_from_pipe(name.clone()) {
             Ok(c) => {
+                println!("Broker read: {:?}", c);
                 content = c;
                 queue.enqueue(content).unwrap();
             }
